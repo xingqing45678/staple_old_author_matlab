@@ -200,17 +200,36 @@ function [results] = trackerMain(p, im, bg_area, fg_area, area_resize_factor)
 
         %% VISUALIZATION
         if p.visualization == 1%为0时不画图，1时画图
-            if isToolboxAvailable('Computer Vision System Toolbox')
+            if ~isToolboxAvailable('Computer Vision System Toolbox')
                 im = insertShape(im, 'Rectangle', rect_position, 'LineWidth', 4, 'Color', 'black');
                 im = insertShape(im, 'Rectangle', rect_position_padded, 'LineWidth', 4, 'Color', 'yellow');
                 % Display the annotated video frame using the video player object.
                 step(p.videoPlayer, im);
             else
-                figure(1)
-                imshow(im)
-                rectangle('Position',rect_position, 'LineWidth',2, 'EdgeColor','g');
-                rectangle('Position',rect_position_padded, 'LineWidth',2, 'LineStyle','--', 'EdgeColor','b');
-                drawnow
+                    if frame == 1,  %first frame, create GUI
+                        figure
+                        im_handle = imagesc(uint8(im));
+                        rectt_handle = rectangle('Position',rect_position, 'LineWidth',2, 'EdgeColor','g');
+                        rectb_handle = rectangle('Position',rect_position_padded, 'LineWidth',2, 'LineStyle','--', 'EdgeColor','b');
+                        tex_handle = text(5, 18, strcat('#',num2str(frame)), 'Color','y', 'FontWeight','bold', 'FontSize',20);
+                        drawnow;
+                    else
+                        try  %subsequent frames, update GUI
+                            set(im_handle, 'CData', im)
+                            set(rectt_handle, 'Position', rect_position)
+                            set(rectb_handle, 'Position', rect_position_padded)
+                            set(tex_handle, 'string', strcat('#',num2str(frame)))
+%                             pause(0.001);
+                            drawnow;
+                        catch  % #ok, user has closed the window
+                            return
+                        end
+                    end
+%                 figure(1)
+%                 imshow(im)
+%                 rectangle('Position',rect_position, 'LineWidth',2, 'EdgeColor','g');
+%                 rectangle('Position',rect_position_padded, 'LineWidth',2, 'LineStyle','--', 'EdgeColor','b');
+%                 drawnow
             end
         end
     end
